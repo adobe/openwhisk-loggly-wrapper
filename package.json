@@ -1,0 +1,17 @@
+{
+  "name": "@adobe/openwhisk-loggly-wrapper",
+  "version": "0.1.0",
+  "description": "Helpers to enable easier logging in OpenWhisk functions",
+  "main": "wrap.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "author": "",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "lodash": "^4.17.10"
+  },
+  "devDependencies": {
+    "npm-snapshot": "^1.0.3"
+  }
+}

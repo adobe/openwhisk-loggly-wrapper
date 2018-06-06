@@ -9,7 +9,8 @@
   "author": "",
   "license": "Apache-2.0",
   "dependencies": {
-    "lodash": "^4.17.10"
+    "lodash": "^4.17.10",
+    "winston-loggly-bulk":"^2.0.2"
   },
   "devDependencies": {
     "npm-snapshot": "^1.0.3"

@@ -108,6 +108,7 @@ function sanitize(o) {
             winston.log("debug", "error", { error: e, request: requestid, activation: activation, function: process.env["__OW_ACTION_NAME"] });
             return e;
           });
+        console.log('returning');
         return retval;
       } catch (e) {
         if (!e.toString().indexOf('Transport already attached')) {

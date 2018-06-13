@@ -53,7 +53,7 @@ function sanitize(o) {
       require("winston-loggly-bulk");
   
       // default log level
-      var loglevel = "info";
+      var loglevel = "debug";
       // default request ID
       var requestid = "debug";
       // OpenWhisk activation ID (works only in OpenWhisk, only for a single invocation)
@@ -89,7 +89,9 @@ function sanitize(o) {
           level: loglevel
         });
       } catch (e) {
-        console.error(e);
+        if (!e.toString().indexOf('Transport already attached')) {
+          console.error("ERROR in wrap", e);
+        }
       }
       console.log("before");
       const [secrets, params] = split(p);

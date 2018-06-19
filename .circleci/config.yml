@@ -4,8 +4,7 @@ jobs:
   build:
     docker:
       # specify the version you desire here
-      # using the clojurescript image because it has node, java, antlr and the openwhisk tools
-      - image: trieloff/githop:clojurescript
+      - image: circleci/node:8
 
     working_directory: ~/repo
 
@@ -45,8 +44,7 @@ jobs:
   publish-snapshot:
     docker:
       # specify the version you desire here
-      # using the clojurescript image because it has node, java, antlr and the openwhisk tools
-      - image: trieloff/githop:clojurescript
+      - image: circleci/node:8
 
     working_directory: ~/repo
 

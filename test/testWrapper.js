@@ -72,4 +72,38 @@ describe("Test wrapper.js", () => {
       }, {HELLO: 'world'}, {HELLO: 'just kidding'})
     );
   });
+
+  it("Wrapping passes the provided logger", done => {
+    const mylogger = require('winston');
+
+    assert.ok(
+      wrapper((p, s, l) => {
+        assert.ok(l);
+        assert.strictEqual(l, mylogger);
+        l.log('info', 'Testing…');
+        done();
+        return true;
+      }, {HELLO: 'world'}, {HELLO: 'just kidding'}, mylogger)
+    );
+  });
+
+  it("Spreading args works", done => {
+    let counter = 0;
+
+    const functiontorun = (params, secrets, logger) => {
+      counter++;
+      assert.equal(counter, 2);
+      assert.equal(params.hey, 'ho');
+      done();
+    }
+
+    const wrapped = (...args) => require('../wrap')(functiontorun, ...args);
+
+    assert.ok(wrapped);
+    assert.equal(typeof wrapped, 'function');
+
+    counter++;
+    assert.equal(counter, 1);
+    wrapped({hey: 'ho'});
+  })
 });

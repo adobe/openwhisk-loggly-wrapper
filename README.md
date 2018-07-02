@@ -1,3 +1,7 @@
 # OpenWhisk Loggly Wrapper
 
-TBD
+## Usage
+
+```javascript
+module.exports.main = (...args) => require('@adobe/openwhisk-loggly-wrapper')(functiontorun, ...args);
+```

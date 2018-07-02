@@ -44,92 +44,101 @@ function split(o) {
   return [_.pickBy(secure, o), _.pickBy(_.negate(secure), o)];
 }
 
+function loglevel(p = {}) {
+  if (p["__ow_headers"]) {
+    if (p["__ow_headers"]["X-Debug"]) {
+      // use the log level set in the `X-Debug` header
+      return p["__ow_headers"]["X-Debug"];
+    }
+  }
+  return "debug";
+}
+
+function activationid() {
+  return process.env["__OW_ACTIVATION_ID"]
+    ? process.env["__OW_ACTIVATION_ID"]
+    : "debug";
+}
+
+function functionname() {
+  return process.env["__OW_ACTION_NAME"]
+    ? process.env["__OW_ACTION_NAME"].replace(/\/.+\//, "")
+    : "debug";
+}
+
+function requestid(p = {}) {
+  if (p["__ow_headers"]) {
+    if (p["__ow_headers"]["X-CDN-Request-Id"]) {
+      return p["__ow_headers"]["X-CDN-Request-Id"];
+    }
+  }
+  return "debug";
+}
+
+function defaultlogger(p, secrets) {
+  const winston = require("winston");
+  require("winston-loggly-bulk");
+
+  try {
+    winston.add(winston.transports.Loggly, {
+      token: secrets.LOGGLY_KEY || p.LOGGLY_KEY,
+      subdomain: secrets.LOGGLY_HOST || p.LOGGLY_HOST,
+      //include OW_ACTION_NAME in tags for easier filtering
+      tags: ["OpenWhisk", functionname(), activationid()],
+      json: true,
+      level: loglevel(p)
+    });
+  } catch (e) {
+    if (!e.toString().indexOf("Transport already attached")) {
+      console.error("ERROR in wrap", e);
+    }
+  }
+  return winston;
+}
+
 /**
  * Wraps a function f with proper logging, before and after.
  */
-function wrap(f) {
-  return function(p) {
-    const winston = require("winston");
-    require("winston-loggly-bulk");
-
-    // default log level
-    var loglevel = "debug";
-    // default request ID
-    var requestid = "debug";
-    // OpenWhisk activation ID (works only in OpenWhisk, only for a single invocation)
-    var activation = process.env["__OW_ACTIVATION_ID"]
-      ? process.env["__OW_ACTIVATION_ID"]
-      : "debug";
-
-    var functionname = process.env["__OW_ACTION_NAME"]
-      ? process.env["__OW_ACTION_NAME"].replace(/\/.+\//, "")
-      : "debug";
-
-    if (p["__ow_headers"]) {
-      if (p["__ow_headers"]["X-Debug"]) {
-        // use the log level set in the `X-Debug` header
-        loglevel = p["__ow_headers"]["X-Debug"];
-        if (p["__ow_headers"]["X-CDN-Request-Id"]) {
-          requestid = p["__ow_headers"]["X-CDN-Request-Id"];
-        }
-      }
-    } else {
-      //there are no headers present, this is a direct invocation, set log level to debug
-      loglevel = "debug";
-    }
-
-    console.log("Logging with level " + loglevel);
-    try {
-      winston.add(winston.transports.Loggly, {
-        token: p.LOGGLY_KEY,
-        subdomain: p.LOGGLY_HOST,
-        //include OW_ACTION_NAME in tags for easier filtering
-        tags: ["OpenWhisk", functionname, activation],
-        json: true,
-        level: loglevel
-      });
-    } catch (e) {
-      if (!e.toString().indexOf("Transport already attached")) {
-        console.error("ERROR in wrap", e);
-      }
-    }
-    console.log("before");
-    const [secrets, params] = split(p);
-    winston.log("debug", "before", {
-      params: params,
-      request: requestid,
-      activation: activation,
-      function: process.env["__OW_ACTION_NAME"]
-    });
-    try {
-      const retval = Promise.resolve(f(params, secrets, winston))
-        .then(r => {
-          console.log("resolved");
-          winston.log("debug", "resolved", {
-            result: r,
-            request: requestid,
-            activation: activation,
-            function: process.env["__OW_ACTION_NAME"]
-          });
-          return r;
-        })
-        .catch(e => {
-          console.log("error");
-          winston.log("debug", "error", {
-            error: e,
-            request: requestid,
-            activation: activation,
-            function: process.env["__OW_ACTION_NAME"]
-          });
-          return e;
+function wrap(
+  f,
+  passedparams,
+  passedsecrets,
+  logger = defaultlogger(passedparams, passedsecrets)
+) {
+  const [parsedsecrets, params] = split(passedparams);
+  // allow overriding secrets
+  const secrets = Object.assign(parsedsecrets, passedsecrets);
+  logger.log("silly", "before", {
+    params: params,
+    request: requestid(params),
+    activation: activationid(),
+    function: functionname()
+  });
+  try {
+    const retval = Promise.resolve(f(params, secrets, logger))
+      .then(r => {
+        logger.log("silly", "resolved", {
+          result: r,
+          request: requestid(params),
+          activation: activationid(),
+          function: functionname()
         });
-      console.log("returning");
-      return retval;
-    } catch (e) {
-      winston.log("error", e);
-      return { error: e };
-    }
-  };
+        return r;
+      })
+      .catch(e => {
+        logger.log("debug", "error", {
+          error: e,
+          request: requestid(params),
+          activation: activationid(),
+          function: functionname()
+        });
+        return e;
+      });
+    return retval;
+  } catch (e) {
+    logger.log("error", e);
+    return { error: e };
+  }
 }
 
 module.exports = wrap;

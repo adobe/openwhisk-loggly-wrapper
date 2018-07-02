@@ -10,6 +10,10 @@
  * governing permissions and limitations under the License.
  */
 const _ = require('lodash/fp');
+const winston = require('winston');
+require('winston-loggly-bulk');
+
+/* eslint-disable no-underscore-dangle */
 
 /**
  * Returns true when k is likely the name of a secure key (i.e. in ALL_CAPS)
@@ -55,19 +59,23 @@ function requestid(p = {}) {
 }
 
 function defaultlogger(p, secrets) {
-  const winston = require('winston');
-  require('winston-loggly-bulk');
-
+  console.log('getting default logger');
+  const token = secrets.LOGGLY_KEY || p.LOGGLY_KEY;
+  const subdomain = secrets.LOGGLY_HOST || p.LOGGLY_HOST;
   try {
-    winston.add(winston.transports.Loggly, {
-      token: secrets.LOGGLY_KEY || p.LOGGLY_KEY,
-      subdomain: secrets.LOGGLY_HOST || p.LOGGLY_HOST,
-      // include OW_ACTION_NAME in tags for easier filtering
-      tags: ['OpenWhisk', functionname(), activationid()],
-      json: true,
-      level: loglevel(p),
-    });
+    if (token && subdomain) {
+      winston.add(winston.transports.Loggly, {
+        token,
+        subdomain,
+        // include OW_ACTION_NAME in tags for easier filtering
+        tags: ['OpenWhisk', functionname(), activationid()],
+        json: true,
+        level: loglevel(p),
+      });
+      console.log('loggly transport added');
+    }
   } catch (e) {
+    console.error(e);
     if (!e.toString().indexOf('Transport already attached')) {
       console.error('ERROR in wrap', e);
     }

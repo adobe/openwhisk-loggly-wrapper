@@ -3,7 +3,7 @@
   "version": "0.2.0",
   "description": "Helpers to enable easier logging in OpenWhisk functions",
   "main": "wrap.js",
-  'repository': "https://github.com/adobe/openwhisk-loggly-wrapper"
+  "repository": "https://github.com/adobe/openwhisk-loggly-wrapper",
   "scripts": {
     "test": "mocha",
     "test-no-env": "mocha -i -g env",

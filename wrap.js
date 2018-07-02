@@ -11,7 +11,7 @@
  */
 const _ = require('lodash/fp');
 const winston = require('winston');
-require('winston-loggly-bulk');
+const Loggly = require('./transport');
 
 /* eslint-disable no-underscore-dangle */
 
@@ -61,19 +61,19 @@ function requestid(p = {}) {
 function defaultlogger(p = {}, secrets = {}) {
   const token = secrets.LOGGLY_KEY || p.LOGGLY_KEY;
   const subdomain = secrets.LOGGLY_HOST || p.LOGGLY_HOST;
-  const logger = winston.createLogger();
+  const logger = winston.createLogger({
+    level: loglevel(p),
+  });
   if (token && subdomain) {
-    logger.add(winston.transports.Loggly, {
+    const myloggly = new Loggly({
       token,
       subdomain,
-      // include OW_ACTION_NAME in tags for easier filtering
       tags: ['OpenWhisk', functionname(), activationid()],
       json: true,
-      level: loglevel(p),
     });
+    logger.add(myloggly);
   } else {
     logger.add(new winston.transports.Console({
-      level: loglevel(p),
       json: false,
       format: winston.format.simple(),
     }));

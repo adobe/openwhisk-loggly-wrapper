@@ -12,8 +12,9 @@
   "license": "Apache-2.0",
   "dependencies": {
     "lodash": "^4.17.10",
+    "node-loggly-bulk": "^2.2.2",
     "winston": "^3.0.0",
-    "winston-loggly-bulk": "git+https://github.com/loggly/winston-loggly-bulk.git#3.x"
+    "winston-transport": "^4.2.0"
   },
   "devDependencies": {
     "codecov": "^3.0.2",

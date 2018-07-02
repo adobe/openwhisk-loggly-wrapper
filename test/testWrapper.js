@@ -81,7 +81,7 @@ describe('Test wrapper.js', () => {
     assert.ok(wrapper(
       (p, s, l) => {
         assert.ok(l);
-        assert.equal(l.level, 'info', 'Incorrect log level');
+        assert.equal(l.level, 'debug', 'Incorrect log level');
         done();
         return true;
       },

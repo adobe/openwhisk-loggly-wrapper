@@ -18,21 +18,6 @@
 const _ = require("lodash/fp");
 
 /**
- * Masks all values of ALL_CAPS keys in o, so that sensitive data isn't
- * inadvertantly echoed
- */
-function sanitize(o) {
-  return _.fromPairs(
-    Object.entries(o).map(([k, v]) => {
-      if (k.match(/^[A-Z0-9_]+$/)) {
-        return [k, k.replace(/./g, "•") + v.substr(-4)];
-      } else {
-        return [k, v];
-      }
-    })
-  );
-}
-/**
  * Returns true when k is likely the name of a secure key (i.e. in ALL_CAPS)
  * @param {String} k
  */

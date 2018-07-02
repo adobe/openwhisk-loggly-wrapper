@@ -5,6 +5,7 @@
   "main": "wrap.js",
   "scripts": {
     "test": "mocha",
+    "test-no-env": "mocha -i -g env",
     "lint": "eslint ."
   },
   "author": "",
@@ -12,7 +13,7 @@
   "dependencies": {
     "lodash": "^4.17.10",
     "winston": "^3.0.0",
-    "winston-loggly-bulk": "^2.0.2"
+    "winston-loggly-bulk": "git+https://github.com/loggly/winston-loggly-bulk.git#3.x"
   },
   "devDependencies": {
     "codecov": "^3.0.2",

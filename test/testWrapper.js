@@ -9,6 +9,7 @@
  * OF ANY KIND, either express or implied. See the License for the specific language
  * governing permissions and limitations under the License.
  */
+/* global it, describe */
 const assert = require('assert');
 const wrapper = require('../wrap');
 
@@ -73,6 +74,7 @@ describe('Test wrapper.js', () => {
   });
 
   it('Wrapping passes the provided logger', (done) => {
+    /* eslint-disable-next-line global-require */
     const mylogger = require('winston');
 
     assert.ok(wrapper((p, s, l) => {
@@ -88,18 +90,19 @@ describe('Test wrapper.js', () => {
     let counter = 0;
 
     const functiontorun = (params, secrets, logger) => {
-      counter++;
+      counter += 1;
       assert.equal(counter, 2);
+      assert.ok(logger);
       assert.equal(params.hey, 'ho');
       done();
     };
-
+    /* eslint-disable-next-line global-require */
     const wrapped = (...args) => require('../wrap')(functiontorun, ...args);
 
     assert.ok(wrapped);
     assert.equal(typeof wrapped, 'function');
 
-    counter++;
+    counter += 1;
     assert.equal(counter, 1);
     wrapped({ hey: 'ho' });
   });

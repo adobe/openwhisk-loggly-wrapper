@@ -93,6 +93,7 @@ function wrap(
   const [parsedsecrets, params] = split(passedparams);
   // allow overriding secrets
   const secrets = Object.assign(parsedsecrets, passedsecrets);
+
   logger.log('silly', 'before', {
     params,
     request: requestid(params),

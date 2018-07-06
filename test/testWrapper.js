@@ -11,8 +11,8 @@
  */
 /* global it, describe */
 const assert = require('assert');
-const wrapper = require('../wrap');
 const winston = require('winston');
+const wrapper = require('../wrap');
 
 describe('Test wrapper.js', () => {
   it('Wrapper can be loaded', () => {

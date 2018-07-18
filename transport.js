@@ -16,7 +16,7 @@ const Transport = require('winston-transport');
 class LogglyTransport extends Transport {
   constructor(options) {
     super(options);
-    this.loggly = loggly.createClient({ ...options, bufferOptions: { size: 1 } });
+    this.loggly = loggly.createClient(Object.assign(...options, { bufferOptions: { size: 1 } }));
   }
 
   log(info, callback) {

@@ -100,8 +100,20 @@ function wrap(
     activation: activationid(),
     function: functionname(),
   });
+
+  const { __ow_headers, __ow_method, ...newparams } = params;
+
+  const action = {
+    secrets,
+    request: {
+      headers: __ow_headers,
+      params: newparams,
+      method: __ow_method,
+    },
+  };
+
   try {
-    const retval = Promise.resolve(f(params, secrets, logger))
+    const retval = Promise.resolve(f({}, action, logger))
       .then((r) => {
         logger.log('silly', 'resolved', {
           result: r,

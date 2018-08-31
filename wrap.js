@@ -122,7 +122,7 @@ function wrap(
       });
     return retval;
   } catch (e) {
-    logger.log('error', e);
+    logger.error(e.stack);
     return { error: e };
   }
 }

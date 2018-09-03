@@ -1,117 +1,130 @@
 version: 2
 jobs:
-
   build:
     docker:
-      # specify the version you desire here
-      - image: circleci/node:8
+    - image: circleci/node:8
+      environment:
+        NPM_CONFIG_PREFIX: "~/.npm-global"
 
     working_directory: ~/repo
 
     steps:
-      - checkout
+    - checkout
 
-      # Download and cache dependencies
-      - restore_cache:
-          keys:
-            - v2-dependencies-{{ checksum "package.json" }}
-            # fallback to using the latest cache if no exact match is found
-            - v2-dependencies-
+    # Download and cache dependencies
+    - restore_cache:
+        keys:
+        - v3-dependencies-{{ checksum "package-lock.json" }}
+    - run:
+        name: Set up global NPM
+        command: mkdir ~/.npm-global
 
-      - run: 
-          name: Install Dependencies
-          command: npm install
+    - run:
+        name: install npm 6.4.0
+        command: sudo npm -g install npm@6.4.0
 
-      - save_cache:
-          paths:
-            - node_modules
-          key: v2-dependencies-{{ checksum "package.json" }}
-      # lint!
-      - run:
-          name: Linting
-          command: npm run lint
-          when: always
+    - run:
+        name: Install Dependencies
+        command: npm install
 
-      # run tests!
-      - run: mkdir junit
-      - run:
-          name: Running Tests
-          command: npx mocha test --reporter mocha-junit-reporter
-          environment:
-            MOCHA_FILE: junit/test-results.xml
-          when: always
+    - save_cache:
+        paths:
+        - node_modules
+        key: v3-dependencies-{{ checksum "package-lock.json" }}
 
-      # get code coverage
-      - run:
-          name: Getting Code Coverage
-          command: npx istanbul cover ./node_modules/mocha/bin/_mocha -- -R spec && npx codecov
-          environment:
-            MOCHA_FILE: junit/test-results.xml
-          when: always
+    - run:
+        name: Lint
+        command: npm run lint
 
-      - store_test_results:
-          path: junit
-      - store_artifacts:
-          path: junit 
+    # run tests!
+    - run: mkdir junit
+    - run:
+        name: prepare test git user
+        command: git config --global user.email "you@example.com" && git config --global user.name "CircleCi Build"
+    - run:
+        name: Running Tests
+        command: npx mocha --reporter mocha-junit-reporter
+        environment:
+          MOCHA_FILE: junit/test-results.xml
+        when: always
 
-  publish-snapshot:
+
+    # get code coverage
+    - run:
+        name: Getting Code Coverage
+        command: npx istanbul cover ./node_modules/mocha/bin/_mocha -- -R spec && npx codecov
+        environment:
+          MOCHA_FILE: junit/test-results.xml
+        when: always
+
+    - store_test_results:
+        path: junit
+
+    - store_artifacts:
+        path: junit
+
+  publish-pre-release:
     docker:
-      # specify the version you desire here
-      - image: circleci/node:8
+    # specify the version you desire here
+    - image: circleci/node:8
 
     working_directory: ~/repo
 
     steps:
-      - checkout
+    - checkout
 
-      # Download and cache dependencies
-      - restore_cache:
-          keys:
-            - v2-dependencies-{{ checksum "package.json" }}
-            # fallback to using the latest cache if no exact match is found
-            - v2-dependencies-
+    - restore_cache:
+        keys:
+        - v3-dependencies-{{ checksum "package-lock.json" }}
 
-      - run: 
-          name: Install Dependencies
-          command: npm install && npm install mocha-junit-reporter npm-snapshot
+    - add_ssh_keys:
+        fingerprints:
+        - "fe:19:b6:75:21:3b:61:73:2f:b8:99:30:ec:52:7d:92"
 
-      - save_cache:
-          paths:
-            - node_modules
-          key: v2-dependencies-{{ checksum "package.json" }}
+    - run:
+        name: prepare test git user
+        command: git config --global user.email "circleci@example.com" && git config --global user.name "CircleCi Build"
 
-#      # run tests!
-#      - run: mkdir junit
-#      - run:
-#          name: Running Tests
-#          command: ./node_modules/.bin/mocha test --reporter mocha-junit-reporter
-#          environment:
-#            MOCHA_FILE: junit/test-results.xml
-#          when: always
+    - run:
+        name: install npm 6.4.0
+        command: sudo npm -g install npm@6.4.0
 
-      - run: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
+    - run:
+        name: install
+        command: npm install
 
-      - run: 
-          command: BUILD_TAG=$(./node_modules/.bin/npm-snapshot $CIRCLE_BUILD_NUM) echo 'export BUILD_TAG=$BUILD_TAG' >> $BASH_ENV
+    - run:
+        name: revert changes to package-lock.json
+        command: git checkout -- package-lock.json
 
-      - run: 
-          name: Publish Snapshot
-          command: npm publish --access public --tag next
+    - run:
+        name: configure npm registry
+        command: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" >> ~/.npmrc
 
-      - store_test_results:
-          path: junit
-      - store_artifacts:
-          path: junit 
+    - run:
+        name: version pre-release
+        command: npm version prerelease --preid=pre -m "Release %s [ci skip]"
+
+    # unfortunately we cannot create a release commit with no tag with `npm version`, so we need to delete it here again
+    - run:
+        name: delete pre-release tag
+        command: npm run delete-git-tag
+
+    - run:
+        name: publish pre-release
+        command: npm publish --tag next --access public
 
 workflows:
   version: 2
   build:
     jobs:
-      - publish-snapshot:
-           requires:
-               - build
-           filters:
-              branches:
-                only:
-                  - master
-      - build
+    # run build on any branch
+    - build
+
+    # publish pre-releases on master
+    - publish-pre-release:
+        requires:
+        - build
+        filters:
+          branches:
+            only: master

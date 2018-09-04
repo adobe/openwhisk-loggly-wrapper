@@ -110,10 +110,11 @@ function wrap(
       params: newparams,
       method: __ow_method,
     },
+    logger,
   };
 
   try {
-    const retval = Promise.resolve(f({}, action, logger))
+    const retval = Promise.resolve(f({}, action))
       .then((r) => {
         logger.log('silly', 'resolved', {
           result: r,

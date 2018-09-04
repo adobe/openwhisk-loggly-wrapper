@@ -32,8 +32,8 @@ describe('Test wrapper.js', () => {
 
   it('Wrapping passes parameters', (done) => {
     assert.ok(wrapper(
-      (p) => {
-        assert.ok(p.hello);
+      (p, a) => {
+        assert.ok(a.request.params.hello);
         done();
         return true;
       },
@@ -43,8 +43,8 @@ describe('Test wrapper.js', () => {
 
   it('Wrapping masks secret parameters', (done) => {
     assert.ok(wrapper(
-      (p) => {
-        assert.notEqual(p.HELLO, 'world');
+      (p, a) => {
+        assert.notEqual(a.request.params.HELLO, 'world');
         done();
         return true;
       },
@@ -54,9 +54,9 @@ describe('Test wrapper.js', () => {
 
   it('Wrapping passes secret parameters as secrets', (done) => {
     assert.ok(wrapper(
-      (p, s) => {
-        assert.notEqual(p.HELLO, 'world');
-        assert.equal(s.HELLO, 'world');
+      (p, a) => {
+        assert.notEqual(a.request.params.HELLO, 'world');
+        assert.equal(a.secrets.HELLO, 'world');
         done();
         return true;
       },
@@ -66,9 +66,9 @@ describe('Test wrapper.js', () => {
 
   it('Wrapping enables overriding of secret parameters', (done) => {
     assert.ok(wrapper(
-      (p, s) => {
-        assert.notEqual(s.HELLO, 'world');
-        assert.equal(s.HELLO, 'just kidding');
+      (p, a) => {
+        assert.notEqual(a.secrets.HELLO, 'world');
+        assert.equal(a.secrets.HELLO, 'just kidding');
         done();
         return true;
       },
@@ -79,9 +79,9 @@ describe('Test wrapper.js', () => {
 
   it('Wrapping sets up a logger with one transports', (done) => {
     assert.ok(wrapper(
-      (p, s, l) => {
-        assert.ok(l);
-        assert.equal(l.level, 'debug', 'Incorrect log level');
+      (p, { logger }) => {
+        assert.ok(logger);
+        assert.equal(logger.level, 'debug', 'Incorrect log level');
         done();
         return true;
       },
@@ -102,15 +102,15 @@ describe('Test wrapper.js', () => {
     });
 
     assert.ok(wrapper(
-      (p, s, l) => {
-        assert.ok(l);
-        assert.strictEqual(l, mylogger);
+      (p, { logger }) => {
+        assert.ok(logger);
+        assert.strictEqual(logger, mylogger);
         //
 
 
-        l.info('She comes in colors ev\'rywhere');
-        l.warn('She combs her hair');
-        l.error('She\'s like a rainbow');
+        logger.info('She comes in colors ev\'rywhere');
+        logger.warn('She combs her hair');
+        logger.error('She\'s like a rainbow');
         done();
         return true;
       },
@@ -123,11 +123,11 @@ describe('Test wrapper.js', () => {
   it('Spreading args works', (done) => {
     let counter = 0;
 
-    const functiontorun = (params, secrets, logger) => {
+    const functiontorun = (params, action) => {
       counter += 1;
       assert.equal(counter, 2);
-      assert.ok(logger);
-      assert.equal(params.hey, 'ho');
+      assert.ok(action.logger);
+      assert.equal(action.request.params.hey, 'ho');
       done();
     };
     /* eslint-disable-next-line global-require */

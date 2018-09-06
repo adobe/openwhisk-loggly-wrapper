@@ -16,15 +16,11 @@ const Loggly = require('./transport');
 /* eslint-disable no-underscore-dangle */
 
 /**
- * Returns true when k is likely the name of a secure key (i.e. in ALL_CAPS)
+ * Returns true when k is likely the name of disclosable key (i.e. not in ALL_CAPS)
  * @param {String} k
  */
-function secure(v, k) {
-  return k.match(/^[A-Z0-9_]+$/);
-}
-
-function split(o) {
-  return [_.pickBy(secure, o), _.pickBy(_.negate(secure), o)];
+function disclosable(v, k) {
+  return !k.match(/^[A-Z0-9_]+$/);
 }
 
 function loglevel(p = {}) {
@@ -58,9 +54,9 @@ function requestid(p = {}) {
   return 'debug';
 }
 
-function defaultlogger(p = {}, secrets = {}) {
-  const token = secrets.LOGGLY_KEY || p.LOGGLY_KEY;
-  const subdomain = secrets.LOGGLY_HOST || p.LOGGLY_HOST;
+function defaultlogger(p = {}) {
+  const token = p.LOGGLY_KEY;
+  const subdomain = p.LOGGLY_HOST;
   const logger = winston.createLogger({
     level: loglevel(p),
   });
@@ -82,30 +78,31 @@ function defaultlogger(p = {}, secrets = {}) {
 }
 
 /**
- * Wraps a function f with proper logging, before and after.
+ * Wraps a function with proper logging, before and after.
+ * @param fn The openwhisk action to wrap
+ * @param params the action params
+ * @returns {*} the return value of the action
  */
-function wrap(
-  f,
-  passedparams,
-  passedsecrets,
-  logger = defaultlogger(passedparams, passedsecrets),
-) {
-  const [parsedsecrets, params] = split(passedparams);
-  // allow overriding secrets
-  const secrets = Object.assign(parsedsecrets, passedsecrets);
+function wrap(fn, params = {}) {
+  if (!params.__ow_logger) {
+    // eslint-disable-next-line no-param-reassign
+    params.__ow_logger = defaultlogger(params);
+  }
+  const disclosableParams = _.pickBy(disclosable, params);
+  const logger = params.__ow_logger;
 
   logger.log('silly', 'before', {
     params,
-    request: requestid(params),
+    request: requestid(disclosableParams),
     activation: activationid(),
     function: functionname(),
   });
   try {
-    const retval = Promise.resolve(f(params, secrets, logger))
+    return Promise.resolve(fn(params))
       .then((r) => {
         logger.log('silly', 'resolved', {
           result: r,
-          request: requestid(params),
+          request: requestid(disclosableParams),
           activation: activationid(),
           function: functionname(),
         });
@@ -114,13 +111,12 @@ function wrap(
       .catch((e) => {
         logger.log('debug', 'error', {
           error: e,
-          request: requestid(params),
+          request: requestid(disclosableParams),
           activation: activationid(),
           function: functionname(),
         });
         return e;
       });
-    return retval;
   } catch (e) {
     logger.error(e.stack);
     return { error: e };

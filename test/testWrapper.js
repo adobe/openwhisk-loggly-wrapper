@@ -14,6 +14,8 @@ const assert = require('assert');
 const winston = require('winston');
 const wrapper = require('../wrap');
 
+/* eslint-disable no-underscore-dangle */
+
 describe('Test wrapper.js', () => {
   it('Wrapper can be loaded', () => {
     assert.ok(wrapper);
@@ -24,62 +26,29 @@ describe('Test wrapper.js', () => {
   });
 
   it('Wrapping executes immediately', (done) => {
-    assert.ok(wrapper(() => {
+    wrapper(() => {
       done();
       return true;
-    }));
+    })
+      .catch(done);
   });
 
   it('Wrapping passes parameters', (done) => {
-    assert.ok(wrapper(
+    wrapper(
       (p) => {
         assert.ok(p.hello);
         done();
         return true;
       },
       { hello: 'world' },
-    ));
-  });
-
-  it('Wrapping masks secret parameters', (done) => {
-    assert.ok(wrapper(
-      (p) => {
-        assert.notEqual(p.HELLO, 'world');
-        done();
-        return true;
-      },
-      { HELLO: 'world' },
-    ));
-  });
-
-  it('Wrapping passes secret parameters as secrets', (done) => {
-    assert.ok(wrapper(
-      (p, s) => {
-        assert.notEqual(p.HELLO, 'world');
-        assert.equal(s.HELLO, 'world');
-        done();
-        return true;
-      },
-      { HELLO: 'world' },
-    ));
-  });
-
-  it('Wrapping enables overriding of secret parameters', (done) => {
-    assert.ok(wrapper(
-      (p, s) => {
-        assert.notEqual(s.HELLO, 'world');
-        assert.equal(s.HELLO, 'just kidding');
-        done();
-        return true;
-      },
-      { HELLO: 'world' },
-      { HELLO: 'just kidding' },
-    ));
+    )
+      .catch(done);
   });
 
   it('Wrapping sets up a logger with one transports', (done) => {
     assert.ok(wrapper(
-      (p, s, l) => {
+      (p) => {
+        const l = p.__ow_logger;
         assert.ok(l);
         assert.equal(l.level, 'debug', 'Incorrect log level');
         done();
@@ -102,42 +71,20 @@ describe('Test wrapper.js', () => {
     });
 
     assert.ok(wrapper(
-      (p, s, l) => {
+      (p) => {
+        const l = p.__ow_logger;
         assert.ok(l);
         assert.strictEqual(l, mylogger);
-        //
-
-
         l.info('She comes in colors ev\'rywhere');
         l.warn('She combs her hair');
         l.error('She\'s like a rainbow');
         done();
         return true;
       },
-      { HELLO: 'world' },
-      { HELLO: 'just kidding' },
-      mylogger,
+      {
+        HELLO: 'world',
+        __ow_logger: mylogger,
+      },
     ));
-  });
-
-  it('Spreading args works', (done) => {
-    let counter = 0;
-
-    const functiontorun = (params, secrets, logger) => {
-      counter += 1;
-      assert.equal(counter, 2);
-      assert.ok(logger);
-      assert.equal(params.hey, 'ho');
-      done();
-    };
-    /* eslint-disable-next-line global-require */
-    const wrapped = (...args) => require('../wrap')(functiontorun, ...args);
-
-    assert.ok(wrapped);
-    assert.equal(typeof wrapped, 'function');
-
-    counter += 1;
-    assert.equal(counter, 1);
-    wrapped({ hey: 'ho' });
   });
 });

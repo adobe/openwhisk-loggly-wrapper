@@ -12,11 +12,22 @@
 /* global it, describe */
 const wrapper = require('../wrap');
 
+/* eslint-disable no-underscore-dangle */
+
 describe('Test Loggly Environment variables (needs env)', () => {
   it('Test Default Logger', (done) => {
-    wrapper((p, s, l) => {
-      l.info('Testing now', p);
+    const ret = wrapper((p) => {
+      const l = p.__ow_logger;
+      l.info('Testing now', p.hello);
       done();
-    }, { LOGGLY_HOST: process.env.LOGGLY_HOST, LOGGLY_KEY: process.env.LOGGLY_KEY });
+    }, {
+      LOGGLY_HOST: process.env.LOGGLY_HOST,
+      LOGGLY_KEY: process.env.LOGGLY_KEY,
+      hello: 'world',
+    });
+
+    if (ret && ret.error) {
+      done(ret.error);
+    }
   });
 });

@@ -1,12 +1,11 @@
 {
   "name": "@adobe/openwhisk-loggly-wrapper",
-  "version": "0.2.2-pre.0",
+  "version": "0.3.0-pre.0",
   "description": "Helpers to enable easier logging in OpenWhisk functions",
   "main": "wrap.js",
   "repository": "https://github.com/adobe/openwhisk-loggly-wrapper",
   "scripts": {
-    "test": "mocha",
-    "test-no-env": "mocha -i -g env",
+    "test": "nyc mocha",
     "lint": "eslint .",
     "snyk-protect": "snyk protect",
     "prepare": "npm run snyk-protect",

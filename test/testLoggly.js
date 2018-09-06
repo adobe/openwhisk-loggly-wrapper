@@ -10,14 +10,9 @@
  * governing permissions and limitations under the License.
  */
 /* global it, describe */
-const assert = require('assert');
 const wrapper = require('../wrap');
 
 describe('Test Loggly Environment variables (needs env)', () => {
-  it('Environment variables are set', () => {
-    assert.ok(process.env.LOGGLY_HOST, 'LOGGLY_HOST environment variable is not set. Run `mocha -i -g env` to exclude this test suite.');
-    assert.ok(process.env.LOGGLY_KEY, 'LOGGLY_KEY environment variable is not set. Run `mocha -i -g env` to exclude this test suite.');
-  });
 
   it('Test Default Logger', (done) => {
     wrapper((p, s, l) => {

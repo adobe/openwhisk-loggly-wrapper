@@ -45,7 +45,7 @@ describe('Test wrapper.js', () => {
       .catch(done);
   });
 
-  it('Wrapping sets up a logger with one transports', (done) => {
+  it('Wrapping sets up a logger with one transport', (done) => {
     assert.ok(wrapper(
       (p) => {
         const l = p.__ow_logger;
@@ -55,6 +55,25 @@ describe('Test wrapper.js', () => {
         return true;
       },
       { HELLO: 'world' },
+      { HELLO: 'just kidding' },
+    ));
+  });
+
+  it('Wrapping sets up a logger with the correct log level', (done) => {
+    assert.ok(wrapper(
+      (p) => {
+        const l = p.__ow_logger;
+        assert.ok(l);
+        assert.equal(l.level, 'error', 'Incorrect log level');
+        done();
+        return true;
+      },
+      {
+        HELLO: 'world',
+        __ow_headers: {
+          'x-debug': 'error',
+        },
+      },
       { HELLO: 'just kidding' },
     ));
   });

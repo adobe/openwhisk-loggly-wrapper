@@ -25,9 +25,10 @@ function disclosable(v, k) {
 
 function loglevel(p = {}) {
   if (p.__ow_headers) {
-    if (p.__ow_headers['X-Debug']) {
+    // openwhisk transforms all headers to lowercase
+    if (p.__ow_headers['x-debug']) {
       // use the log level set in the `X-Debug` header
-      return p.__ow_headers['X-Debug'];
+      return p.__ow_headers['x-debug'];
     }
   }
   return 'debug';
@@ -47,8 +48,9 @@ function functionname() {
 
 function requestid(p = {}) {
   if (p.__ow_headers) {
-    if (p.__ow_headers['X-CDN-Request-Id']) {
-      return p.__ow_headers['X-CDN-Request-Id'];
+    // openwhisk transforms all headers to lowercase
+    if (p.__ow_headers['x-cdn-request-id']) {
+      return p.__ow_headers['x-cdn-request-id'];
     }
   }
   return 'debug';
@@ -100,7 +102,7 @@ function wrap(fn, params = {}) {
   try {
     return Promise.resolve(fn(params))
       .then((r) => {
-        logger.log('silly', 'resolved', {
+        logger.silly('resolved', {
           result: r,
           request: requestid(disclosableParams),
           activation: activationid(),

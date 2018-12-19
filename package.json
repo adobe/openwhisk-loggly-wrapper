@@ -19,8 +19,7 @@
     "lodash": "^4.17.10",
     "node-loggly-bulk": "^2.2.2",
     "winston": "^3.0.0",
-    "winston-transport": "^4.2.0",
-    "snyk": "^1.88.1"
+    "winston-transport": "^4.2.0"
   },
   "devDependencies": {
     "ajv": "^6.5.3",
@@ -35,7 +34,8 @@
     "mocha": "^5.2.0",
     "mocha-junit-reporter": "^1.17.0",
     "npm-snapshot": "^1.0.3",
-    "nyc": "^13.0.1"
+    "nyc": "^13.0.1",
+    "snyk": "^1.88.1"
   },
   "snyk": true
 }

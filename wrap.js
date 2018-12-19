@@ -102,7 +102,7 @@ function wrap(fn, params = {}) {
   try {
     return Promise.resolve(fn(params))
       .then((r) => {
-        logger.log('silly', 'resolved', {
+        logger.silly('resolved', {
           result: r,
           request: requestid(disclosableParams),
           activation: activationid(),

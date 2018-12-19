@@ -78,6 +78,33 @@ describe('Test wrapper.js', () => {
     ));
   });
 
+  it('Wrapping extracts the CDN Request ID', (done) => {
+    /* eslint-disable-next-line global-require */
+    const mylogger = winston.createLogger({
+      level: 'silly',
+      format: winston.format.combine(
+        winston.format.colorize({ all: true }),
+        winston.format.simple(),
+      ),
+      transports: [new winston.transports.Console()],
+    });
+
+    mylogger.silly = (message, payload) => {
+      assert.equal(payload.request, 'testtesttest');
+      done();
+    };
+
+    assert.ok(wrapper(
+      () => true,
+      {
+        __ow_logger: mylogger,
+        __ow_headers: {
+          'x-cdn-request-id': 'testtesttest',
+        },
+      },
+    ));
+  });
+
   it('Wrapping passes the provided logger', (done) => {
     /* eslint-disable-next-line global-require */
     const mylogger = winston.createLogger({

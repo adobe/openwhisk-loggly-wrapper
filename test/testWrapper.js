@@ -55,8 +55,19 @@ describe('Test wrapper.js', () => {
         return true;
       },
       { HELLO: 'world' },
-      { HELLO: 'just kidding' },
     ));
+  });
+
+  it('Wrapping propagates error consistently', async () => {
+    const out = await wrapper(
+      () => {
+        // trigger runtime exception
+        /* eslint no-undef: 0 */
+        foo.bar = 'boom!';
+        return true;
+      },
+    );
+    assert.ok(typeof out.error !== 'undefined');
   });
 
   it('Wrapping sets up a logger with the correct log level', (done) => {
@@ -74,7 +85,6 @@ describe('Test wrapper.js', () => {
           'x-debug': 'error',
         },
       },
-      { HELLO: 'just kidding' },
     ));
   });
 

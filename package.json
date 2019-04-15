@@ -1,6 +1,6 @@
 {
   "name": "@adobe/openwhisk-loggly-wrapper",
-  "version": "0.4.2-pre.5",
+  "version": "0.4.2-pre.6",
   "description": "Helpers to enable easier logging in OpenWhisk functions",
   "main": "wrap.js",
   "repository": "https://github.com/adobe/openwhisk-loggly-wrapper",

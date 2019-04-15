@@ -70,10 +70,12 @@ function defaultlogger(p = {}) {
       json: true,
     });
     logger.add(myloggly);
+    logger.exceptions.handle(myloggly);
   } else {
     logger.add(new winston.transports.Console({
       json: false,
       format: winston.format.simple(),
+      handleExceptions: true,
     }));
   }
   return logger;
@@ -111,13 +113,13 @@ function wrap(fn, params = {}) {
         return r;
       })
       .catch((e) => {
-        logger.log('debug', 'error', {
+        logger.error('error', {
           error: e,
           request: requestid(disclosableParams),
           activation: activationid(),
           function: functionname(),
         });
-        return e;
+        return { error: e };
       });
   } catch (e) {
     logger.error(e.stack);

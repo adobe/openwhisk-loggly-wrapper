@@ -6,6 +6,7 @@
   "repository": "https://github.com/adobe/openwhisk-loggly-wrapper",
   "scripts": {
     "test": "nyc mocha",
+    "test-ci": "nyc nyc --reporter=text --reporter=lcov mocha --reporter xunit --reporter-options output=./junit/test-results.xml && codecov",
     "lint": "eslint .",
     "snyk-protect": "snyk protect",
     "prepare": "npm run snyk-protect",

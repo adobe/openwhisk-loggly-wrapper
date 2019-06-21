@@ -10,10 +10,7 @@
     "lint": "eslint .",
     "snyk-protect": "snyk protect",
     "prepare": "npm run snyk-protect",
-    "semantic-release": "semantic-release",
-    "preversion": "npm test",
-    "postversion": "git push origin master --follow-tags",
-    "delete-git-tag": "git tag -d v$npm_package_version && git push origin :v$npm_package_version"
+    "semantic-release": "semantic-release"
   },
   "author": "",
   "license": "Apache-2.0",

@@ -39,7 +39,7 @@
     "mocha-junit-reporter": "^1.17.0",
     "npm-snapshot": "^1.0.3",
     "nyc": "^14.1.1",
-    "semantic-release": "^15.13.16",
+    "semantic-release": "^15.13.19",
     "snyk": "^1.171.1"
   },
   "snyk": true
